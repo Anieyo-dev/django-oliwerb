@@ -1,0 +1,59 @@
+version: '3.9'
+
+services: 
+  django:
+    restart: always
+    build:
+      context: ../backend/
+      dockerfile: ./DockerFile.django
+    networks:
+      - db
+      - nginx
+    command: [sh, -c, "
+        python manage.py collectstatic --no-input &&
+        python manage.py migrate 
+        && python manage.py runserver 0.0.0.0:8000 "]
+    links:
+      - db:db
+    volumes:
+      - ../backend:/app
+      - static:/static
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      
+  db:
+    image: postgres:latest
+    env_file:
+      - ../config/developmentConf/postgres.env
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - db
+    restart: unless-stopped
+
+  nginx:
+    build: ../backend/nginx
+    volumes:
+      - static:/static
+    ports:
+      - "80:80"
+    networks:
+      - nginx
+    depends_on:
+      - django
+
+networks:
+  db:
+    driver: bridge
+  nginx:
+    driver: bridge
+
+volumes:
+  db:
+  static:
+
+# systemctl start docker

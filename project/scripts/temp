@@ -1,0 +1,13 @@
+echo "DO YOU WANT TO COLLECT STATIC FILES? Y/N"
+read -s -n1 collect
+
+if [ $collect = "y" ]; then
+    cd backend
+    echo "Collecting static files"
+    python manage.py collectstatic 
+    cd ..
+elif [$collect = "n" ]; then
+    echo "Declined!"
+else 
+    echo "Done Nothing NO OPTION SELECTED!"
+fi
